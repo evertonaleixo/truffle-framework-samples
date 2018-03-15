@@ -1,100 +1,81 @@
-var accounts;
-var account;
-var balance;
+App = {
+    web3Provider: null,
+    contracts: {},
 
-var Congress, usingProperty;
+    init: function() {
+        // Load pets.
+        $.getJSON('../pets.json', function(data) {
+            var petsRow = $('#petsRow');
+            var petTemplate = $('#petTemplate');
 
-function init(event) {
+            for (i = 0; i < data.length; i++) {
+                petTemplate.find('.panel-title').text(data[i].name);
+                petTemplate.find('img').attr('src', data[i].picture);
+                petTemplate.find('.pet-breed').text(data[i].breed);
+                petTemplate.find('.pet-age').text(data[i].age);
+                petTemplate.find('.pet-location').text(data[i].location);
+                petTemplate.find('.btn-adopt').attr('data-id', data[i].id);
 
-    $(".getCongressAddr").click(getCongressAddr);
-    $(".addMember").click(addMember);
-
-
-    Congress.deployed().then(function(instance, txs) {
-        console.log(instance);
-        Congress = instance;
-        alert("Congress Address:" + Congress.address);
-    });
-
-    usingProperty.deployed().then(function(instance) {
-        usingProperty = instance;
-        alert("usingProperty Address:" + usingProperty.address);
-    });
-}
-
-
-
-
-function addMember() {
-    var name = $(".s_Name").val();
-    var threshold = parseInt($(".s_Threshold").val());
-    var fund = parseInt($(".s_Fund").val());
-    var rate = parseInt($(".s_Rate").val());
-    var character = $(".s_Character").val();
-    console.log(name, threshold, fund, rate, character);
-
-
-    Congress.addMember(name, threshold, fund, rate, character, { from: accounts[1], gas: 221468 })
-        .then(function(txs) {
-            console.log("txs");
-            console.log(txs);
-        });
-}
-
-function getStakeholdersLength() {
-    Congress.getStakeholdersLength.call({ from: accounts[0] })
-        .then(function(result) {
-            console.log("get Stakeholder Length");
-            console.log(result);
-        });
-}
-
-function getCongressAddr() {
-    usingProperty.getCongressAddr.call({ from: accounts[1] })
-        .then(function(addr) {
-            console.log(addr);
-        });
-}
-
-
-function hex2a(hexx) {
-    var hex = hexx.toString(); //force conversion
-    var str = '';
-    for (var i = 0; i < hex.length; i += 2)
-        str += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
-    return str;
-}
-
-
-import Web3 from "web3";
-
-window.onload = function() {
-    console.log("h")
-
-
-
-    if (typeof web3 !== 'undefined') {
-        // Use the Mist/wallet provider.                            
-        window.web3 = new Web3(web3.currentProvider);
-    } else {
-        // No web3 detected. Show an error to the user or use Infura: https://infura.io/
-
-
-        web3.eth.getAccounts(function(err, accs) {
-            if (err != null) {
-                alert("There was an error fetching your accounts.");
-                return;
+                petsRow.append(petTemplate.html());
             }
-
-            if (accs.length == 0) {
-                alert("Couldn't get any accounts! Make sure your Ethereum client is configured correctly.");
-                return;
-            }
-
-            accounts = accs;
-            account = accounts[0];
-            alert(account)
-            init();
         });
+
+        return App.initWeb3();
+    },
+
+    initWeb3: function() {
+        // Is there an injected web3 instance?
+        if (typeof web3 !== 'undefined') {
+            App.web3Provider = web3.currentProvider;
+        } else {
+            // If no injected web3 instance is detected, fall back to Ganache
+            App.web3Provider = new Web3.providers.HttpProvider('http://localhost:7545');
+        }
+        web3 = new Web3(App.web3Provider);
+
+        return App.initContract();
+    },
+
+    initContract: function() {
+        $.getJSON('Adoption.json', function(data) {
+            // Get the necessary contract artifact file and instantiate it with truffle-contract
+            var AdoptionArtifact = data;
+            App.contracts.Adoption = TruffleContract(AdoptionArtifact);
+
+            // Set the provider for our contract
+            App.contracts.Adoption.setProvider(App.web3Provider);
+
+            // Use our contract to retrieve and mark the adopted pets
+            return App.markAdopted();
+        });
+
+        return App.bindEvents();
+    },
+
+    bindEvents: function() {
+        $(document).on('click', '.btn-adopt', App.handleAdopt);
+    },
+
+    markAdopted: function(adopters, account) {
+        /*
+         * Replace me...
+         */
+    },
+
+    handleAdopt: function(event) {
+        event.preventDefault();
+
+        var petId = parseInt($(event.target).data('id'));
+
+        /*
+         * Replace me...
+         */
     }
-}
+
+};
+
+$(function() {
+    $(window).load(function() {
+        App.init();
+    });
+});

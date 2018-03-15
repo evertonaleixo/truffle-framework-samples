@@ -39,10 +39,6 @@ module.exports = {
                 }
             },
             { test: /\.scss$/i, use: ExtractTextPlugin.extract(["css", "sass"]) },
-            {
-                test: /\.json$/,
-                use: 'json-loader'
-            },
             { test: /\.sol/, use: 'truffle-solidity' }
         ]
     },
